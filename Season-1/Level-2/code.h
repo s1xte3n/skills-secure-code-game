@@ -64,6 +64,7 @@ int create_user_account(bool isAdmin, const char *username) {
     strcpy(ua->username, username);
     memset(&ua->setting, 0, sizeof ua->setting);
     accounts[userid_next] = ua;
+    
     return userid_next++;
 }
 
@@ -73,6 +74,9 @@ bool update_setting(int user_id, const char *index, const char *value) {
     if (user_id < 0 || user_id >= MAX_USERS)
         return false;
 
+    if (accounts[user_id] == NULL)
+        return false;
+
     char *endptr;
     long i, v;
     i = strtol(index, &endptr, 10);
@@ -80,7 +84,7 @@ bool update_setting(int user_id, const char *index, const char *value) {
         return false;
 
     v = strtol(value, &endptr, 10);
-    if (*endptr || i >= SETTINGS_COUNT)
+    if (*endptr || i < 0 || i >= SETTINGS_COUNT)
         return false;
     accounts[user_id]->setting[i] = v;
     return true;
@@ -90,6 +94,11 @@ bool update_setting(int user_id, const char *index, const char *value) {
 bool is_admin(int user_id) {
     if (user_id < 0 || user_id >= MAX_USERS) {
         fprintf(stderr, "invalid user id");
+        return false;
+    }
+    
+    if (accounts[user_id] == NULL) {
+        fprintf(stderr, "user account not found");
         return false;
     }    
     return accounts[user_id]->isAdmin;
@@ -101,6 +110,11 @@ const char* username(int user_id) {
     if (user_id < 0 || user_id >= MAX_USERS) {
         fprintf(stderr, "invalid user id");
         return NULL;
-    }    
+    }
+    
+    if (accounts[user_id] == NULL) {
+        fprintf(stderr, "user account not found");
+        return NULL;
+    }
     return accounts[user_id]->username;
 }
