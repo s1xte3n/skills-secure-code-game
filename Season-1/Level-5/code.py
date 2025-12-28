@@ -7,7 +7,6 @@ import random
 import secrets
 import hashlib
 import os
-import bcrypt
 
 class Random_generator:
 
@@ -21,22 +20,27 @@ class Random_generator:
 
     # generates salt
     def generate_salt(self, rounds=12):
-        salt = ''.join(str(random.randint(0, 9)) for _ in range(21)) + '.'
-        return f'$2b${rounds}${salt}'.encode()
+        return secrets.token_bytes(32)
 
 class SHA256_hasher:
 
     # produces the password hash by combining password + salt because hashing
     def password_hash(self, password, salt):
-        password = binascii.hexlify(hashlib.sha256(password.encode()).digest())
-        password_hash = bcrypt.hashpw(password, salt)
-        return password_hash.decode('ascii')
+        password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 100000)
+        salt_hex = binascii.hexlify(salt).decode('ascii')
+        hash_hex = binascii.hexlify(password_hash).decode('ascii')
+        return f"{salt_hex}${hash_hex}"
 
     # verifies that the hashed password reverses to the plain text version on verification
     def password_verification(self, password, password_hash):
-        password = binascii.hexlify(hashlib.sha256(password.encode()).digest())
-        password_hash = password_hash.encode('ascii')
-        return bcrypt.checkpw(password, password_hash)
+        parts = password_hash.split('$')
+        salt = binascii.unhexlify(parts[0])
+        stored_hash = parts[1]
+        
+        computed_hash_bytes = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 100000)
+        computed_hash = binascii.hexlify(computed_hash_bytes).decode('ascii')
+        
+        return secrets.compare_digest(computed_hash, stor)
 
 class MD5_hasher:
 
