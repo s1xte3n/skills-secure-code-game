@@ -40,7 +40,7 @@ class SHA256_hasher:
         computed_hash_bytes = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 100000)
         computed_hash = binascii.hexlify(computed_hash_bytes).decode('ascii')
         
-        return secrets.compare_digest(computed_hash, stor)
+        return secrets.compare_digest(computed_hash, stored_hash)
 
 class MD5_hasher:
 
